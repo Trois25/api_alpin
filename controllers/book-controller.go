@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"math/rand"
 	"praktikum/config"
 	"praktikum/helpers"
 	"praktikum/models"
@@ -19,11 +21,11 @@ func GetBooksController(c echo.Context) error {
 
 	if err := config.DB.Preload("Penerbit").Find(&books).Error; err != nil {
 
-		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("error get data"))
+		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("error get data"))
 
 	}
 
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get all books",books))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get all books", books))
 
 }
 
@@ -37,9 +39,9 @@ func GetBookController(c echo.Context) error {
 	err := config.DB.Preload("Penerbit").First(&book, id).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("Book not found"))
+		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Book not found"))
 	}
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get book",book))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get book", book))
 }
 
 // create new book
@@ -60,12 +62,33 @@ func CreateBookController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Invalid Penerbit ID"))
 	}
 
+	// Generate a custom string ID
+	customID := generateCustomID(book.Kategori)
+	book.ID = customID
+	fmt.Println(book.ID)
+
 	// Save the book
 	if err := config.DB.Save(&book).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed to create book"))
 	}
 
 	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success create new book"))
+}
+
+// Function to generate custom string ID
+func generateCustomID(kategori string) string {
+	if len(kategori) == 0 {
+        // Handle the case where kategori is empty
+        return ""  // or some default value
+    }
+	// Assume kategori is not empty
+	firstLetter := string(kategori[0])
+
+	// Generate a random integer (you can replace this with your own logic)
+	randomInt := rand.Intn(10000)
+
+	// Concatenate the first letter and random integer
+	return firstLetter + strconv.Itoa(randomInt)
 }
 
 // delete book by id
@@ -78,9 +101,9 @@ func DeleteBookController(c echo.Context) error {
 	err := config.DB.Delete(&book, id).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("Failed delete book"))
+		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed delete book"))
 	}
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success delete book",book))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success delete book", book))
 
 }
 

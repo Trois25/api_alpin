@@ -1,11 +1,7 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type Book struct {
-	gorm.Model
+	ID string `json:"id" form:"id" gorm:"primary_key"`
 
 	Kategori string `json:"kategori" form:"kategori"`
 
