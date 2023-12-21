@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math/rand"
 	"praktikum/config"
 	"praktikum/helpers"
@@ -65,7 +64,6 @@ func CreateBookController(c echo.Context) error {
 	// Generate a custom string ID
 	customID := generateCustomID(book.Kategori)
 	book.ID = customID
-	fmt.Println(book.ID)
 
 	// Save the book
 	if err := config.DB.Save(&book).Error; err != nil {
