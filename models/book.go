@@ -11,6 +11,6 @@ type Book struct {
 
 	Stock int `json:"stock" form:"stock"`
 
-	PenerbitID string     `json:"penerbit_id" form:"penerbit_id"`
+	PenerbitID uint     `json:"penerbit_id" form:"penerbit_id"`
 	Penerbit   Penerbit `json:"penerbit" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

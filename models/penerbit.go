@@ -1,7 +1,9 @@
 package models
 
+import "gorm.io/gorm"
+
 type Penerbit struct {
-	ID string `json:"id" form:"id" gorm:"primary_key"`
+	gorm.Model
 
 	Nama string `json:"nama" form:"nama"`
 
@@ -10,4 +12,5 @@ type Penerbit struct {
 	Kota string `json:"kota" form:"kota"`
 
 	Telepon string `json:"telepon" form:"telepon"`
+	
 }

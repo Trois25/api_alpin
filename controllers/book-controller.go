@@ -46,35 +46,39 @@ func GetBookController(c echo.Context) error {
 // create new book
 
 func CreateBookController(c echo.Context) error {
-	book := models.Book{}
-	c.Bind(&book)
+    // Bind the JSON request body to the book structure
+    book := models.Book{}
+    if err := c.Bind(&book); err != nil {
+        return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Invalid request payload"))
+    }
 
-	// Validate PenerbitID
-	if book.PenerbitID == "" {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Penerbit ID is required"))
-	}
+    // Validate Penerbit name
+    if book.Penerbit.Nama == "" {
+        return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Nama Penerbit is required"))
+    }
 
-	// Check if the specified Penerbit exists based on the name
-	penerbit := models.Penerbit{}
-	err := config.DB.Where("nama = ?", book.Penerbit.Nama).First(&penerbit).Error
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("penerbit tidak ditemukan"))
-	}
+    // Check if the specified Penerbit exists based on the name
+    var penerbit models.Penerbit
+    err := config.DB.Where("nama = ?", book.Penerbit.Nama).First(&penerbit).Error
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Penerbit tidak ditemukan"))
+    }
 
-	// Generate a custom string ID
-	customID := generateCustomID(book.Kategori)
-	book.ID = customID
+    // Generate a custom string ID
+    customID := generateCustomID(book.Kategori)
+    book.ID = customID
 
-	// Set the PenerbitID based on the retrieved Penerbit's ID
-	book.PenerbitID = penerbit.ID
+    // Set the PenerbitID based on the retrieved Penerbit's ID
+    book.PenerbitID = penerbit.ID
 
-	// Save the book
-	if err := config.DB.Save(&book).Error; err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed to create book"))
-	}
+    // Save the book
+    if err := config.DB.Save(&book).Error; err != nil {
+        return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed to create book"))
+    }
 
-	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success create new book"))
+    return c.JSON(http.StatusOK, helpers.SuccessResponse("Success create new book"))
 }
+
 
 // Function to generate custom string ID
 func generateCustomID(kategori string) string {
@@ -146,4 +150,3 @@ func UpdateBookController(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success update book"))
 }
-

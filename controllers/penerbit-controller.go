@@ -19,11 +19,11 @@ func GetPenerbitController(c echo.Context) error {
 
 	if err := config.DB.Find(&penerbit).Error; err != nil {
 
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("error get data"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("error get data"))
 
 	}
 
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get all penerbit", penerbit))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get all penerbit",penerbit))
 
 }
 
@@ -32,14 +32,14 @@ func GetPenerbitController(c echo.Context) error {
 func GetPenerbitSpesifikController(c echo.Context) error {
 
 	// your solution here
-	id := c.Param("id")
+	id, _ := strconv.Atoi(c.Param("id"))
 	penerbit := models.Penerbit{}
 	err := config.DB.First(&penerbit, id).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("penerbit not found"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("penerbit not found"))
 	}
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get penerbit", penerbit))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success get penerbit",penerbit))
 }
 
 // create new book
@@ -50,25 +50,14 @@ func CreatePenerbitController(c echo.Context) error {
 
 	c.Bind(&penerbit)
 
-	customID := generateCustomIDPenerbit()
-	penerbit.ID = customID
-
 	if err := config.DB.Save(&penerbit).Error; err != nil {
 
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed create penerbit"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("Failed create penerbit"))
 
 	}
 
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success create new penerbit", penerbit))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success create new penerbit",penerbit))
 
-}
-
-var counter int
-
-// Function to generate custom string ID
-func generateCustomIDPenerbit() string {
-	counter++
-	return "SP" + strconv.Itoa(counter)
 }
 
 // delete book by id
@@ -76,14 +65,14 @@ func generateCustomIDPenerbit() string {
 func DeletePenerbitController(c echo.Context) error {
 
 	// your solution here
-	id := c.Param("id")
+	id, _ := strconv.Atoi(c.Param("id"))
 	penerbit := models.Penerbit{}
-
 	err := config.DB.Delete(&penerbit, id).Error
+
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed delete penerbit"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("Failed delete penerbit"))
 	}
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success delete penerbit", penerbit))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success delete penerbit",penerbit))
 
 }
 
@@ -92,17 +81,17 @@ func DeletePenerbitController(c echo.Context) error {
 func UpdatePenerbitController(c echo.Context) error {
 
 	// your solution here
-	id := c.Param("id")
-	penerbit := models.Penerbit{}
+	id,_ := strconv.Atoi(c.Param("id"))
 
-	err := config.DB.First(&penerbit, id).Error
+	penerbit := models.Penerbit{}
+	err := config.DB.First(&penerbit,id).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed update penerbit"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("Failed update penerbit"))
 	}
 
-	update := models.Penerbit{}
+	update := new(models.Penerbit)
 	if err := c.Bind(update); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("penerbit data is not valid"))
+		return c.JSON(http.StatusBadRequest,helpers.FailedResponse("penerbit data is not valid"))
 	}
 
 	penerbit.Nama = update.Nama
@@ -110,8 +99,8 @@ func UpdatePenerbitController(c echo.Context) error {
 	penerbit.Kota = update.Kota
 	penerbit.Telepon = update.Telepon
 
-	config.DB.Updates(&penerbit)
+	config.DB.Save(&penerbit)
 
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success update penerbit", penerbit))
+	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success update penerbit",penerbit))
 
 }
