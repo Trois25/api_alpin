@@ -50,20 +50,23 @@ func CreateBookController(c echo.Context) error {
 	c.Bind(&book)
 
 	// Validate PenerbitID
-	if book.PenerbitID == 0 {
+	if book.PenerbitID == "" {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Penerbit ID is required"))
 	}
 
-	// Check if the specified Penerbit exists
-	var penerbit models.Penerbit
-	err := config.DB.First(&penerbit, book.PenerbitID).Error
+	// Check if the specified Penerbit exists based on the name
+	penerbit := models.Penerbit{}
+	err := config.DB.Where("nama = ?", book.Penerbit.Nama).First(&penerbit).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Invalid Penerbit ID"))
+		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("penerbit tidak ditemukan"))
 	}
 
 	// Generate a custom string ID
 	customID := generateCustomID(book.Kategori)
 	book.ID = customID
+
+	// Set the PenerbitID based on the retrieved Penerbit's ID
+	book.PenerbitID = penerbit.ID
 
 	// Save the book
 	if err := config.DB.Save(&book).Error; err != nil {
@@ -76,9 +79,9 @@ func CreateBookController(c echo.Context) error {
 // Function to generate custom string ID
 func generateCustomID(kategori string) string {
 	if len(kategori) == 0 {
-        // Handle the case where kategori is empty
-        return ""  // or some default value
-    }
+		// Handle the case where kategori is empty
+		return "kategori tidak boleh kosong" // or some default value
+	}
 	// Assume kategori is not empty
 	firstLetter := string(kategori[0])
 
@@ -110,7 +113,7 @@ func DeleteBookController(c echo.Context) error {
 func UpdateBookController(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 	book := models.Book{}
-	err := config.DB.First(&book, id).Error
+	err := config.DB.Preload("Penerbit").First(&book, id).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed update book"))
 	}
@@ -120,16 +123,16 @@ func UpdateBookController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Book data is not valid"))
 	}
 
-	// Validate PenerbitID
-	if update.PenerbitID != 0 {
+	// Validate Penerbit Name
+	if update.Penerbit.Nama != "" {
 		// Check if the specified Penerbit exists
 		var penerbit models.Penerbit
-		err := config.DB.First(&penerbit, update.PenerbitID).Error
+		err := config.DB.Where("nama = ?", update.Penerbit.Nama).First(&penerbit).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Invalid Penerbit ID"))
+			return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Invalid Penerbit Name"))
 		}
 		// Update Penerbit information
-		book.PenerbitID = update.PenerbitID
+		book.PenerbitID = penerbit.ID
 		book.Penerbit = penerbit
 	}
 
@@ -143,3 +146,4 @@ func UpdateBookController(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success update book"))
 }
+
