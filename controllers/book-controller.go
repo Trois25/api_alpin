@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"math/rand"
 	"praktikum/config"
 	"praktikum/helpers"
 	"praktikum/models"
@@ -35,7 +34,7 @@ func GetBookController(c echo.Context) error {
 	// your solution here
 	id, _ := strconv.Atoi(c.Param("id"))
 	book := models.Book{}
-	err := config.DB.Preload("Penerbit").First(&book, id).Error
+	err := config.DB.First(&book, id).Preload("Penerbit").Error
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Book not found"))
@@ -64,12 +63,8 @@ func CreateBookController(c echo.Context) error {
         return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Penerbit tidak ditemukan"))
     }
 
-    // Generate a custom string ID
-    customID := generateCustomID(book.Kategori)
-    book.ID = customID
-
-    // Set the PenerbitID based on the retrieved Penerbit's ID
-    book.PenerbitID = penerbit.ID
+    // Associate the existing Penerbit with the book
+    config.DB.Model(&book).Association("Penerbit").Append(&penerbit)
 
     // Save the book
     if err := config.DB.Save(&book).Error; err != nil {
@@ -77,23 +72,6 @@ func CreateBookController(c echo.Context) error {
     }
 
     return c.JSON(http.StatusOK, helpers.SuccessResponse("Success create new book"))
-}
-
-
-// Function to generate custom string ID
-func generateCustomID(kategori string) string {
-	if len(kategori) == 0 {
-		// Handle the case where kategori is empty
-		return "kategori tidak boleh kosong" // or some default value
-	}
-	// Assume kategori is not empty
-	firstLetter := string(kategori[0])
-
-	// Generate a random integer (you can replace this with your own logic)
-	randomInt := rand.Intn(10000)
-
-	// Concatenate the first letter and random integer
-	return firstLetter + strconv.Itoa(randomInt)
 }
 
 // delete book by id
@@ -108,7 +86,7 @@ func DeleteBookController(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, helpers.FailedResponse("Failed delete book"))
 	}
-	return c.JSON(http.StatusOK, helpers.SuccessWithDataResponse("Success delete book", book))
+	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success delete book"))
 
 }
 
