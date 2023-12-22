@@ -124,7 +124,7 @@ func UpdateBookController(c echo.Context) error {
 	book.Harga = update.Harga
 	book.Stock = update.Stock
 
-	config.DB.Save(&book)
+	config.DB.Updates(&book)
 
 	return c.JSON(http.StatusOK, helpers.SuccessResponse("Success update book"))
 }
